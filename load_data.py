@@ -164,7 +164,10 @@ def load_test_data():
         
         paquetes = []
         for paquete_data in paquetes_data:
-            paquete, created = Paquete.objects.get_or_create(**paquete_data)
+            paquete, created = Paquete.objects.get_or_create(
+                tracking=paquete_data["tracking"],  # Buscar por tracking (único)
+                defaults=paquete_data  # Crear con todos los datos si no existe
+            )            
             if created:
                 print(f"   ✓ Paquete creado: {paquete.tracking} - {paquete.nombre_destinatario}")
             else:
@@ -195,38 +198,40 @@ def load_test_data():
         print("7. Asignando paquetes a planillas...")
         try:
             # Asignar primer paquete a primera planilla
-            item1 = Item.objects.create(
+            item1, created1 = Item.objects.get_or_create(
                 planilla=planillas[0],
                 paquete=paquetes[0],
-                posicion=1
+                defaults={'posicion': 1} 
             )
-            print(f"   ✓ Paquete {paquetes[0].tracking} asignado a planilla {planillas[0].numero_planilla}")
+            accion = "creado" if created1 else "existente"
+            print(f"   ✓ Paquete {paquetes[0].tracking} {accion} en planilla {planillas[0].numero_planilla} (posición {item1.posicion})")
             
             # Asignar segundo y tercer paquete a segunda planilla
-            item2 = Item.objects.create(
+            item2, created2 = Item.objects.get_or_create(
                 planilla=planillas[1],
                 paquete=paquetes[1],
-                posicion=1
+                defaults={'posicion': 1}
             )
-            print(f"   ✓ Paquete {paquetes[1].tracking} asignado a planilla {planillas[1].numero_planilla}")
+            accion = "creado" if created2 else "existente"
+            print(f"   ✓ Paquete {paquetes[1].tracking} {accion} en planilla {planillas[1].numero_planilla} (posición {item2.posicion})")
             
-            item3 = Item.objects.create(
+            item3, created3 = Item.objects.get_or_create(
                 planilla=planillas[1],
                 paquete=paquetes[2],
-                posicion=2
+                defaults={'posicion': 2}
             )
-            print(f"   ✓ Paquete {paquetes[2].tracking} asignado a planilla {planillas[1].numero_planilla}")
+            accion = "creado" if created3 else "existente"
+            print(f"   ✓ Paquete {paquetes[2].tracking} {accion} en planilla {planillas[1].numero_planilla} (posición {item3.posicion})")
             
             # Asignar cuarto paquete a primera planilla
-            item4 = Item.objects.create(
+            item4, created4 = Item.objects.get_or_create(
                 planilla=planillas[0],
                 paquete=paquetes[3],
-                posicion=3
+                defaults={'posicion': 2}  # ← Siguiente posición disponible
             )
-            print(f"   ✓ Paquete {paquetes[3].tracking} asignado a planilla {planillas[0].numero_planilla}")
-            
-            print("   ✓ Asignación de paquetes a planillas completada")
-            
+            accion = "creado" if created4 else "existente"
+            print(f"   ✓ Paquete {paquetes[3].tracking} {accion} en planilla {planillas[0].numero_planilla} (posición {item4.posicion})")
+
         except Exception as e:
             print(f"   ✗ Error asignando paquetes a planillas:\n {e}")
         
