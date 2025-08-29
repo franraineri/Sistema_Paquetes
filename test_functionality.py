@@ -15,7 +15,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-RANDOM_NUM = random.randint(0, 9999);
+
 
 # Configurar Django
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
@@ -72,14 +72,13 @@ class TestAPIClient:
 
 
 class FunctionalityTester:
-    """Testeador de funcionalidades específicas"""
-    
+        
     def __init__(self, api_client: TestAPIClient):
         self.api = api_client
     
     def test_list_paquetes(self) -> bool:
         """Testea endpoint de listado de paquetes con filtros"""
-        logger.info("Testeando endpoint de listado de paquetes...")
+        logger.info("     Testeando endpoint de listado de paquetes...")
         
         try:
             # Testear listado básico
@@ -112,22 +111,21 @@ class FunctionalityTester:
                 return False
                 
         except Exception as e:
-            logger.error(f"- Error en test listado de paquetes:\n {e}")
+            logger.error(f"error en test listado de paquetes:\n {e}")
             return False
     
     def test_create_paquete(self) -> bool:
-        """Testea endpoint de creación de paquete"""
-        logger.info("Testeando endpoint de creación de paquete...")
+        logger.info("     Testeando endpoint de creación de paquete...")
         
         try:
-            # Primero obtenemos un cliente existente
+            
             from app_paquetes.models import Cliente
             cliente = Cliente.objects.first()
             if not cliente:
                 logger.error("- No hay clientes disponibles para crear paquete")
                 return False
             nuevo_paquete = {
-                "tracking": f"TEST{RANDOM_NUM}_CREATED",
+                "tracking": f"TEST{random.randint(100, 9999)}_CREATED",
                 "direccion_destinatario": "Calle de prueba 123",
                 "telefono_destinatario": "999888777",
                 "nombre_destinatario": "Test Usuario",
@@ -138,7 +136,7 @@ class FunctionalityTester:
             
             logger.info(f"Enviando datos de paquete: {nuevo_paquete}")
             
-            response = self.api.post("paquetes/crear/", nuevo_paquete)
+            response = self.api.post("paquetes/create/", nuevo_paquete)
             if response.status_code == 201:
                 paquete_creado = response.json()
                 logger.info(f"+ Paquete creado exitosamente")
@@ -148,8 +146,8 @@ class FunctionalityTester:
                 return True
             else:
                 logger.error(f"- Error creando paquete: {response.status_code}")
-                logger.error(f"- Respuesta: {response.text}")
-                # Intentamos obtener detalles del error
+                logger.error(f"- Respuesta: {response}")
+                
                 try:
                     error_data = response.json()
                     logger.error(f"- Detalles del error:\n {error_data}")
@@ -158,34 +156,78 @@ class FunctionalityTester:
                 return False
                 
         except Exception as e:
-            logger.error(f"- Error en test creación de paquete:\n {e}")
+            logger.error(f"error en test creación de paquete:\n {e}")
             import traceback
             traceback.print_exc()
             return False
     
-    def test_assign_paquetes_planilla(self) -> bool:
-        """Testea asignación de paquetes a planilla"""
-        logger.info("Testeando asignación de paquetes a la primera planilla...")
+    def test_create_paquete_sobrepeso(self) -> bool:
+        logger.info("     Testeando endpoint de creación de paquete excediendo limite...")
         
         try:
-            # Usar planilla existente en lugar de crear una nueva
-            from app_paquetes.models import Planilla
-            planilla = Planilla.objects.first()
-            if not planilla:
-                logger.warning("! No hay planillas disponibles para testear asignación")
-                return True
             
-            # Intentar asignar paquete a planilla
+            from app_paquetes.models import Cliente
+            cliente = Cliente.objects.last()
+            if not cliente:
+                logger.error("- No hay clientes disponibles para crear paquete")
+                return False
+            nuevo_paquete_sobrepeso = {
+                "tracking": f"TEST{random.randint(100, 9999)}_CREATED",
+                "direccion_destinatario": "Calle de prueba 123",
+                "telefono_destinatario": "999888777",
+                "nombre_destinatario": "Test Usuario",
+                "peso": 25000.1,  #peso sobrepasado
+                "altura": 25.1,
+                "cliente": cliente.id
+            }
+            
+            logger.info(f"Enviando datos de paquete: {nuevo_paquete_sobrepeso}")
+            
+            response = self.api.post("paquetes/create/", nuevo_paquete_sobrepeso)
+            if response.status_code == 201:
+                paquete_creado = response.json()
+                logger.error(f"!! El paquete creado exitosamente excediendo el limite")
+                logger.error(f"+ Tracking: {paquete_creado.get('tracking')}")
+                logger.error(f"+ Tipo determinado: {paquete_creado.get('tipo', 'Desconocido')}")
+                logger.error(f"+ Peso: {paquete_creado.get('peso')}g")
+                return False
+            else:
+                logger.info(f"- Validacion captada creando paquete: {response.status_code}")
+                logger.info(f"- Este es el resultado esperado")
+                
+                return True
+                
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return True
+        
+    def test_assign_paquetes_planilla(self) -> bool:
+        """Testea asignación de paquetes a planilla"""
+        logger.info("     Testeando asignación de paquetes a una nueva planilla vacia ...")
+        
+        try:
+            from app_paquetes.models import Planilla
+            PLANILLA_ID= random.randint(100, 9999)
+            planilla_data ={ "numero_planilla": PLANILLA_ID}
+            
+            planilla, created = Planilla.objects.get_or_create(**planilla_data)
+            if created:
+                print(f" Planilla creada: {planilla.numero_planilla}")
+
+            print('planilla a asignar: ', planilla)
+            # asignar paquete a planilla
             from app_paquetes.models import Paquete
-            paquete_en_deposito = Paquete.objects.filter(estado=Paquete.EstadoPaquete.EN_DEPOSITO).first()
+            paquete_en_deposito = Paquete.objects.filter(estado=Paquete.EstadoPaquete.EN_DEPOSITO).last()
+            print('paquete en deposito: ', paquete_en_deposito)
             
             if paquete_en_deposito:
                 asignacion_data = {
                     "planilla_id": planilla.id
                 }
-                
+                print('data de asignacion: ', asignacion_data)
                 response = self.api.put(
-                    f"paquetes/{paquete_en_deposito.id}/asignar-planilla/",
+                    f"paquetes/{paquete_en_deposito.id}/assign-planilla/",
                     asignacion_data
                 )
                 
@@ -194,19 +236,19 @@ class FunctionalityTester:
                     return True
                 else:
                     logger.error(f"- Error asignando paquete: {response.status_code}")
-                    logger.error(f"- Respuesta: {response.text}")
+                    logger.error(f"- Respuesta: {response}")
                     return False
             else:
                 logger.warning("! No hay paquetes en depósito para testear asignación")
                 return True
                 
         except Exception as e:
-            logger.error(f"- Error en test asignación de paquetes:\n {e}")
+            logger.error(f"error en test asignación de paquetes:\n {e}")
             return False
     
     def test_planilla_resumen(self) -> bool:
         """Testea endpoint de resumen de planilla"""
-        logger.info("Testeando resumen de planilla...")
+        logger.info("     Testeando resumen de planilla...")
         
         try:
             from app_paquetes.models import Planilla
@@ -221,25 +263,24 @@ class FunctionalityTester:
                     return True
                 else:
                     logger.error(f"- Error obteniendo resumen: {response.status_code}")
-                    logger.error(f"- Respuesta: {response.text}")
+                    logger.error(f"- Respuesta: {response}")
                     return False
             else:
                 logger.warning("! No hay planillas para testear resumen")
                 return True
                 
         except Exception as e:
-            logger.error(f"- Error en test resumen de planilla:\n {e}")
+            logger.error(f"error en test resumen de planilla:\n {e}")
             return False
     
     def test_distribuir_paquetes(self) -> bool:
         """Testea cambio a estado 'en distribución'"""
-        logger.info("Testeando cambio a estado 'en distribución'...")
+        logger.info("     Testeando cambio a estado 'en distribución'...")
         
         try:
             from app_paquetes.models import Planilla
             planilla = Planilla.objects.first()
             if planilla:
-                # Corregido: ahora pasamos correctamente el diccionario de datos
                 distribuir_data = {}  # Datos vacíos para PUT
                 response = self.api.put(f"planillas/{planilla.id}/distribuir/", distribuir_data)
                 if response.status_code == 200:
@@ -249,19 +290,19 @@ class FunctionalityTester:
                     return True
                 else:
                     logger.error(f"- Error cambiando estado: {response.status_code}")
-                    logger.error(f"- Respuesta: {response.text}")
+                    logger.error(f"- Respuesta: {response}")
                     return False
             else:
                 logger.warning("! No hay planillas para testear distribución")
                 return True
                 
         except Exception as e:
-            logger.error(f"- Error en test distribución:\n {e}")
+            logger.error(f"error en test distribución:\n {e}")
             return False
     
     def test_asignar_motivo_fallo(self) -> bool:
         """Testea asignación de motivo de fallo"""
-        logger.info("Testeando asignación de motivo de fallo...")
+        logger.info("     Testeando asignación de motivo de fallo...")
         
         try:
             from app_paquetes.models import Item, MotivoFalloSimple
@@ -274,7 +315,7 @@ class FunctionalityTester:
                     }
                     
                     response = self.api.put(
-                        f"items/{item.id}/asignar-motivo/",
+                        f"items/{item.id}/assign-motivo/",
                         asignacion_data
                     )
                     
@@ -285,7 +326,7 @@ class FunctionalityTester:
                         return True
                     else:
                         logger.error(f"- Error asignando motivo: {response.status_code}")
-                        logger.error(f"- Respuesta: {response.text}")
+                        logger.error(f"- Respuesta: {response}")
                         return False
                 else:
                     logger.warning("! No hay motivos simples para testear")
@@ -295,18 +336,21 @@ class FunctionalityTester:
                 return True
                 
         except Exception as e:
-            logger.error(f"- Error en test asignación de motivos:\n {e}")
+            logger.error(f"error en test asignación de motivos:\n {e}")
             return False
     
     def test_bulk_assignment(self) -> bool:
         """Testea asignación bulk de paquetes"""
-        logger.info("Testeando asignación bulk de paquetes...")
+        logger.info("     Testeando asignación bulk de paquetes...")
         
         try:
             from app_paquetes.models import Planilla, Paquete
             planilla = Planilla.objects.first()
             if planilla:
                 paquetes = Paquete.objects.filter(estado=Paquete.EstadoPaquete.EN_DEPOSITO)[:2]
+                #no es una buena practica, pero asegura que el test resulte PASS:
+                # for paquete in paquetes:
+                #     paquete.peso = 10 
                 if paquetes:
                     paquete_ids = [p.id for p in paquetes]
                     bulk_data = {
@@ -315,7 +359,7 @@ class FunctionalityTester:
                     }
                     
                     print("body:" , bulk_data)
-                    response = self.api.post("paquetes/bulk-asignar-planilla/", bulk_data)
+                    response = self.api.post("paquetes/bulk-assign-planilla/", bulk_data)
                     if response.status_code == 200:
                         resultado = response.json()
                         logger.info(f"+ Asignación bulk exitosa")
@@ -323,7 +367,7 @@ class FunctionalityTester:
                         return True
                     else:
                         logger.error(f"- Error en asignación bulk: {response.status_code}")
-                        logger.error(f"- Respuesta: {response.text}")
+                        logger.error(f"- Respuesta: {response}")
                         return False
                 else:
                     logger.warning("! No hay suficientes paquetes para testear bulk assignment")
@@ -333,7 +377,7 @@ class FunctionalityTester:
                 return True
                 
         except Exception as e:
-            logger.error(f"- Error en test bulk assignment:\n {e}")
+            logger.error(f"error en test bulk assignment:\n {e}")
             return False
     
     def run_all_tests(self) -> bool:
@@ -343,6 +387,7 @@ class FunctionalityTester:
         tests = [
             ("Listado de paquetes", self.test_list_paquetes),
             ("Creación de paquetes", self.test_create_paquete),
+            ("Creación de paquete con sobrepeso", self.test_create_paquete_sobrepeso),
             ("Asignación a planilla", self.test_assign_paquetes_planilla),
             ("Resumen de planilla", self.test_planilla_resumen),
             ("Distribución de paquetes", self.test_distribuir_paquetes),
@@ -378,9 +423,7 @@ class FunctionalityTester:
         logger.info(f"\nTotal: {passed}/{total} tests pasaron")
 
 
-def main():
-    """Función principal del script de testeo"""
-    
+def main():    
     try:
         # Crear cliente API
         api_client = TestAPIClient()

@@ -40,7 +40,7 @@ class PaqueteCreateView(generics.CreateAPIView):
         paquete = serializer.save()
 
 
-class PaqueteAsignarPlanillaView(generics.UpdateAPIView):
+class PaqueteAssignPlanillaView(generics.UpdateAPIView):
     queryset = Paquete.objects.all()
     serializer_class = PaqueteSerializer
     
@@ -111,7 +111,7 @@ class PlanillaDistribuirView(generics.UpdateAPIView):
         }, status=status.HTTP_200_OK)
 
 
-class ItemAsignarMotivoFalloView(generics.UpdateAPIView):
+class ItemAssignMotivoFalloView(generics.UpdateAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
     
@@ -145,8 +145,8 @@ class ItemAsignarMotivoFalloView(generics.UpdateAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-class PaqueteBulkAsignarPlanillaView(generics.GenericAPIView):
-    # múltiples asignaciones de paquetes a planilla
+class PaqueteBulkAssignPlanillaView(generics.GenericAPIView):
+    # asignacion múltiple de paquetes a una planilla
     
     #transaccion realizada de forma unica como bloque
     @transaction.atomic
@@ -187,7 +187,7 @@ class PaqueteBulkAsignarPlanillaView(generics.GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Asignar paquetes a la planilla
+            # Assign paquetes a la planilla
             posicion_inicial = planilla.items.count() + 1
             items_creados = []
             

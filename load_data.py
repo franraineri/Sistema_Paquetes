@@ -33,7 +33,6 @@ def load_test_data():
     """Carga automáticamente datos de prueba en la base de datos"""
     
     try:
-        # Importar modelos después de setup de Django
         from app_paquetes.models import (
             Cliente, Paquete, Planilla, Item, 
             MotivoFalloSimple
@@ -42,7 +41,7 @@ def load_test_data():
         
         print("=== CARGA AUTOMÁTICA DE DATOS DE PRUEBA ===\n")
         
-        # 1. Crear usuario administrador
+
         print("1. Creando usuario administrador...")
         try:
             admin_user = User.objects.get(username='admin')
@@ -51,7 +50,7 @@ def load_test_data():
             admin_user = User.objects.create_superuser('admin', 'admin@example.com', 'password')
             print("   ✓ Usuario administrador creado")
         
-        # 2. Crear clientes
+
         print("2. Creando clientes...")
         clientes_data = [
             {"nombre": "Juan Pérez", "email": "juan@example.com", "telefono": "123456789", "direccion": "Calle Principal 123"},
@@ -68,7 +67,7 @@ def load_test_data():
                 print(f"   ✓ Cliente existente: {cliente.nombre}")
             clientes.append(cliente)
         
-        # 3. Crear motivos de fallo simples
+
         print("3. Creando motivos de fallo simples...")
         motivos_simples_data = [
             {
@@ -107,7 +106,6 @@ def load_test_data():
             motivos_simples.append(motivo)
         
 
-        # 5. Crear paquetes
         print("5. Creando paquetes...")
         paquetes_data = [
             {
@@ -174,7 +172,7 @@ def load_test_data():
                 print(f"   ✓ Paquete existente: {paquete.tracking} - {paquete.nombre_destinatario}")
             paquetes.append(paquete)
         
-        # 6. Crear planillas
+
         print("6. Creando planillas...")
         planillas_data = [
             {
@@ -194,7 +192,7 @@ def load_test_data():
                 print(f"   ✓ Planilla existente: {planilla.numero_planilla}")
             planillas.append(planilla)
         
-        # 7. Asignar paquetes a planillas
+        
         print("7. Asignando paquetes a planillas...")
         try:
             # Asignar primer paquete a primera planilla
@@ -230,12 +228,11 @@ def load_test_data():
                 defaults={'posicion': 2}  # ← Siguiente posición disponible
             )
             accion = "creado" if created4 else "existente"
-            print(f"   ✓ Paquete {paquetes[3].tracking} {accion} en planilla {planillas[0].numero_planilla} (posición {item4.posicion})")
+            print(f" Paquete {paquetes[3].tracking} {accion} en planilla {planillas[0].numero_planilla} (posición {item4.posicion})")
 
         except Exception as e:
-            print(f"   ✗ Error asignando paquetes a planillas:\n {e}")
+            print(f" --> Error asignando paquetes a planillas:\n {e}")
         
-        # 8. Asignar motivos a ítems
         print("8. Asignando motivos de fallo a ítems...")
         try:
             if len(paquetes) >= 2 and len(motivos_simples) >= 1:
@@ -248,20 +245,16 @@ def load_test_data():
             
            
         except Exception as e:
-            print(f"   ✗ Error asignando motivos de fallo:\n {e}")
+            print(f" --> Error asignando motivos de fallo:\n {e}")
         
-        # 9. Mostrar resumen
-        print("\n=== RESUMEN DE DATOS CREADOS ===")
+        print("\n____RESUMEN DE DATOS CREADOS____")
         print(f"Usuarios: 1")
         print(f"Clientes: {len(clientes)}")
         print(f"Paquetes: {len(paquetes)}")
         print(f"Planillas: {len(planillas)}")
         print(f"Motivos simples: {len(motivos_simples)}")
         print(f"Ítems: {Item.objects.count()}")
-        
-        print("\n=== DATOS DE PRUEBA CARGADOS EXITOSAMENTE ===")
-        print("¡Ya puedes probar los endpoints REST!")
-        
+                
         return True
         
     except Exception as e:
@@ -271,7 +264,6 @@ def load_test_data():
         return False
 
 if __name__ == "__main__":
-    # Creación y aplicación de migraciones
     print("\n____ Paso 1: Creación de migraciones ____")
     if run_command("python manage.py makemigrations"):
         print("\n____ Paso 2: Aplicación de migraciones ____")
@@ -280,8 +272,6 @@ if __name__ == "__main__":
     print("Iniciando carga automática de datos de prueba")
     success = load_test_data()
     
-    if success:
-        print("\n✅ Carga de datos completada exitosamente!")
-    else:
-        print("\n❌ Error al cargar datos")
+    if not success:
+        print("\n!! error al cargar datos!!")
         sys.exit(1)

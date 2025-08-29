@@ -1,15 +1,15 @@
-# 📦 Sistema de Gestión de Paquetes
+# 📦 Sistema de Gestión de Paquetes - Package Management System
 
 Sistema para sistematizar el seguimiento y gestión de paquetes en depósitos, con soporte para planillas de distribución, motivos de fallo y estadísticas.
 
-### 🛠️ Tecnologías
+### 🛠️ Tecnologías - Technologies
 
 - **Python 3.10+**
 - **Django 5.2+** - Framework web de alto nivel
 - **Django REST Framework** - API RESTful
 - **SQLite** - Base de datos por defecto
 
-## Instalación y Ejecucion del Proyecto en máquina virtual
+## Instalación y Ejecucion del Proyecto - Project Instalation and Execution
 Crear entorno virtual:
 ```
 python -m venv venv
@@ -34,7 +34,7 @@ python manage.py runserver
 ```
 
 
-## Scripts de Carga de Datos y Testeo
+## Scripts de Carga de Datos y Testeo - Data Loading and Testing Scripts
 
 - load_test_data.py:
   Carga automáticamente datos de prueba
@@ -47,24 +47,26 @@ python manage.py runserver
   Validación de datos en modelos y vistas
   Log completo de los resultados
 
-## Endpoints - TODO: update
+## Endpoints
 
-Paquetes
+### Paquetes
 GET /api/paquetes/ - Listar paquetes (filtrable por estado, cliente, tipo)
-POST /api/paquetes/ - Crear paquete (tipo calculado automáticamente por peso)
+POST /api/paquetes/create/ - Crear paquete (tipo calculado automáticamente por peso)
+POST paquetes/<int:pk>/assign-planilla/ - asigna un unico paquete a una planilla
+POST paquetes/bulk-assign-planilla/ - asigna varios paquetes a una planilla
 
-Planillas
-POST /api/planillas/{id}/assign-packages/ - Asignar paquetes a planilla (límite 25kg)
+
+### Planillas
 GET /api/planillas/{id}/summary/ - Resumen de planilla con paquetes
 POST /api/planillas/{id}/mark-distribution/ - Marcar paquetes como "en distribución"
 
-Motivos de fallo
+### Motivos de fallo
 GET /api/motivos-fallo/ - Listar motivos (simples y compuestos)
 
 
-## 📋 Descripción
+## 📋 Descripción - Description
 
-### Estructura de Modelos
+### Estructura de Modelos - Models Structure
 
 Modelo Cliente
 Responsabilidad: Almacena información básica de clientes
@@ -93,9 +95,9 @@ Facilita extensión futura con motivos compuestos
 Modelos MotivoFalloSimple y MotivoFalloCompuesto - Implementación concreta de motivos de fallo
 
 MotivoFalloSimple: Motivos individuales con estado activo
-MotivoFalloCompuesto: Futura combinación de motivos simples y compuestos
+MotivoFalloCompuesto (WIP): Futura combinación de motivos simples y compuestos
 
-### Características Principales
+### Características Principales - Main Features 
 
 1. Gestión de Paquetes
    Creación automática de tipo basada en peso
@@ -118,15 +120,10 @@ MotivoFalloCompuesto: Futura combinación de motivos simples y compuestos
    Asignación bulk de paquetes
 
 
-### Posibles Próximos Pasos
-Dockerisar el proyecto y sus requerimientos
-Agregar tests unitarios completos
-Realizar documentación API con Swagger
-Implementar cacheo para consultas frecuentes
-Agregar funcionalidad de reportes
-
-### 📄 `requirements.txt`
-
-```txt
-
-```
+### Próximos Pasos - Next Steps
+Dockerisar el proyecto 
+Centralizar toda la configuracion y constantes de la aplicacion
+Traducir nombres de clases y metodos a ingles
+Agregar tests unitarios mas completos con un framework
+Realizar documentación completa API 
+Agregar funcionalidad de reportes y estadistica

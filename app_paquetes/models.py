@@ -5,8 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q, Sum
 from .utils.paquete_utils import PaqueteUtils
-
-#TODO: mover todas las constantes a un unico archivo
+#TODO: mover las constantes a un unico archivo
 
 class Cliente(models.Model):
     """Modelo básico de cliente"""
@@ -68,9 +67,13 @@ class Paquete(models.Model):
     def clean(self):
         if self.peso <= 0:
             raise ValidationError({"peso": "El peso debe ser mayor a 0"})
+        if self.peso > 25000.0:
+            raise ValidationError({"peso": "El peso debe ser menor a 25"}) #se asume como regla de negocio
 
     def save(self, *args, **kwargs):
         """Calcula el tipo de paquete basado en el peso"""
+        if self.peso > 25000.0:
+            raise ValidationError({"peso": "El peso debe ser menor a 25"}) #se asume como regla de negocio
         self.tipo = PaqueteUtils.determinar_tipo_paquete(self.peso)
         super().save(*args, **kwargs)
 
@@ -122,7 +125,7 @@ class Planilla(models.Model):
         verbose_name = "Planilla"
         verbose_name_plural = "Planillas"
         ordering = ["-fecha"]
-
+    
 class MotivoFallo(models.Model):
     codigo = models.CharField(max_length=20, default= 'no code');
     nombre = models.CharField(max_length=100, default= 'no name')
@@ -160,6 +163,7 @@ class MotivoFalloSimple(MotivoFallo, models.Model):
 
 
 # class MotivoFalloCompuesto(MotivoFallo, models.Model):
+#     """(WIP): Futura combinación de motivos simples y compuestos, implementa el patron Composite"""
 #     motivos = models.ManyToManyField(MotivoFalloSimple)
 
 #     def get_codigo(self) -> str:
@@ -176,24 +180,6 @@ class MotivoFalloSimple(MotivoFallo, models.Model):
 
 #     def is_active(self) -> bool:
 #         return all(motivo.is_active() for motivo in self.motivos.all())
-
-class ItemService:
-    @staticmethod
-    def validar_paquete_unico_en_planilla(item: 'Item') -> None:
-        """Valida que un paquete no esté en múltiples planillas activas"""
-        if item.paquete.estado != Paquete.EstadoPaquete.EN_DEPOSITO:
-            return
-
-        query = Item.objects.filter(
-            paquete=item.paquete,
-            planilla__items__paquete__estado=Paquete.EstadoPaquete.EN_DEPOSITO
-        ).exclude(id=item.id)
-
-        if query.exists():
-            raise ValidationError({
-                "paquete": "Este paquete está en otra planilla activa."
-            })
-
 
 class Item(models.Model):
     planilla = models.ForeignKey(
@@ -218,6 +204,21 @@ class Item(models.Model):
         verbose_name="Motivo de fallo"
     )
 
+    def validar_paquete_unico_en_planilla(item: 'Item') -> None:    #Agregado
+        """Validacion de que un paquete no esté en múltiples planillas activas"""
+        if item.paquete.estado != Paquete.EstadoPaquete.EN_DEPOSITO:
+            return
+
+        query = Item.objects.filter(
+            paquete=item.paquete,
+            planilla__items__paquete__estado=Paquete.EstadoPaquete.EN_DEPOSITO
+        ).exclude(id=item.id)
+
+        if query.exists():
+            raise ValidationError({
+                "paquete": "Este paquete está en otra planilla activa."
+            })
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -240,4 +241,4 @@ class Item(models.Model):
             })
 
         # Agregado: Validar que el paquete no esté en múltiples planillas activas
-        ItemService.validar_paquete_unico_en_planilla(self)
+        self.validar_paquete_unico_en_planilla(self)
