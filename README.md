@@ -33,12 +33,23 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Alternative - Run the project with Docker:
+```
+docker-compose up --build
+```
+or, in background: 
+```
+docker-compose up -d
+```
 
 ## Scripts de Carga de Datos y Testeo - Data Loading and Testing Scripts
 
 - load_test_data.py:
   Carga automáticamente datos de prueba
   Crea usuarios, clientes, paquetes, planillas y motivos de fallo
+```
+python load_test_data.py
+```
 
 - test_functionality.py
   Testeo automatizado de todas las funcionalidades
@@ -46,6 +57,10 @@ python manage.py runserver
   Validación de reglas de negocio
   Validación de datos en modelos y vistas
   Log completo de los resultados
+
+```
+python test_functionality.py
+```
 
 ## Endpoints
 

@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    volumes:
+      - .:/app
+      - ./db:/app/db  # para persistir db.sqlite3
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000

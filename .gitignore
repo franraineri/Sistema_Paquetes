@@ -64,3 +64,28 @@ Thumbs.db
 *~
 *.swp
 *.swo
+
+# Docker
+docker-compose.override.yml
+*.img
+*.tar
+*.gz
+*.zip
+*.log
+*.tmp
+
+# Caché de build
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyo
+*.pyd
+*.pyw
+*.pyw
+*.pyo
+*.pyd
+*.pyw
+*.pyo
+*.pyd
+*.pyw
